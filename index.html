@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="shortcut icon" href="image/icon.png" type="image/x-png">
+    <title>Click!</title>
+</head>
+<body>
+    <header id="topo">
+        <div class="nivel-info">
+            <span id="nivel">LEVEL 1</span>
+            <span id="experiencia">0 / 100 XP</span>
+        </div>
+
+        <div class="barra-xp">
+            <div id="progresso-xp"></div>
+        </div>
+    </header>
+
+    <main id="inicio">
+        <div id="jogar">PLAY</div>
+    </main>
+
+    <main id="jogo">
+        <div id="centro">
+            <div id="pontos">Points: 0</div>
+            <div id="click">CLICK</div>
+            <p id="mensagem">Click anywhere to collect stars</p>
+        </div>
+    </main>
+
+    <div id="planetasTela"></div>
+
+    <section id="loja">
+        <button id="abrirCursores" type="button" title="My Customization">✦</button>
+        <h2>STAR SHOP</h2>
+        <div class="cards-loja" id="estoquePlanetas"></div>
+        <p id="mensagemLoja">Choose your next upgrade</p>
+    </section>
+
+    <div id="painelCursores" hidden>
+        <div class="cabecalho-cursores">
+            <h2>CUSTOMIZATION</h2>
+            <button id="fecharCursores" type="button">×</button>
+        </div>
+
+        <div class="abas-customizacao">
+            <button id="abaCursores" class="aba-btn ativa" type="button">Cursors</button>
+            <button id="abaParticulas" class="aba-btn" type="button">Particles</button>
+        </div>
+
+        <div id="listaCursores"></div>
+        <div id="listaParticulas" hidden></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

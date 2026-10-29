@@ -1,0 +1,391 @@
+*{
+    box-sizing: border-box;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+body{
+    margin: 0;
+    width: 100%;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: hidden;
+    font-family: "Trebuchet MS", Arial, sans-serif;
+    color: #f7eaff;
+    background: radial-gradient(ellipse at 50% 100%, #39304e 0%, transparent 55%), #111426;
+}
+
+#topo{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 24px clamp(18px, 5vw, 60px);
+    z-index: 2;
+}
+
+.nivel-info{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    color: #ead7ff;
+    font-size: 13px;
+    letter-spacing: 1px;
+}
+
+.barra-xp{
+    height: 9px;
+    background: #332d48;
+    border: 1px solid #655375;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+#progresso-xp{
+    width: 0%;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #c6a4e8, #f3cce7);
+    transition: width 0.3s ease;
+}
+
+#inicio{
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3;
+}
+
+#jogar{
+    font-size: 38px;
+    color: #f5e6ff;
+    cursor: pointer;
+    transition: transform 0.2s, color 0.2s;
+}
+
+#jogar:hover{
+    color: #ffffff;
+    transform: scale(1.06);
+}
+
+#jogo{
+    display: none;
+}
+
+#centro{
+    position: absolute;
+    top: 42%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+    text-align: center;
+    z-index: 1;
+}
+
+#pontos{
+    margin-bottom: 30px;
+    font-size: 22px;
+    color: #ead8ff;
+}
+
+#click{
+    display: inline-block;
+    font-size: 42px;
+    color: #fff0d8;
+    cursor: pointer;
+    transition: transform 0.15s;
+}
+
+#click:active{
+    transform: scale(0.92);
+}
+
+#mensagem{
+    margin-top: 18px;
+    font-size: 12px;
+    color: #bfb0d6;
+}
+
+#planetasTela{
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.planeta-movel{
+    position: absolute;
+    width: var(--tamanho);
+    height: var(--tamanho);
+    min-width: var(--tamanho);
+    min-height: var(--tamanho);
+    max-width: var(--tamanho);
+    max-height: var(--tamanho);
+    padding: 0;
+    margin: 0;
+    border: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    flex: none;
+    flex-shrink: 0;
+    transform: translate(-50%, -50%);
+    transform-origin: center center;
+    cursor: grab;
+    pointer-events: auto;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    animation: flutuarPlaneta 4s ease-in-out infinite alternate;
+}
+
+@keyframes flutuarPlaneta{
+    0%{ transform: translate(-50%, -50%) translateY(0px); }
+    100%{ transform: translate(-50%, -50%) translateY(-12px); }
+}
+
+.planeta-movel:active{
+    cursor: grabbing;
+}
+
+.planeta-movel img{
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 8px #cbb7ff55);
+}
+
+#loja{
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    padding: 12px 18px max(18px, env(safe-area-inset-bottom));
+    background: linear-gradient(180deg, #17172b00, #17172bee 20%);
+    z-index: 10;
+    max-height: 65vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+#loja h2{
+    margin: 0 0 12px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: normal;
+    letter-spacing: 3px;
+    color: #e8d4ff;
+}
+
+.cards-loja{
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+}
+
+.card-planeta{
+    aspect-ratio: 1 / 1;
+    min-width: 0;
+    padding: 10px 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 7px;
+    color: #f6eaff;
+    font-family: inherit;
+    text-align: center;
+    background: #29253dee;
+    border: 1px solid #5c4b70;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.2s, border-color 0.2s;
+}
+
+.card-planeta:hover{
+    background: #39304d;
+    border-color: #bda0d5;
+    transform: translateY(-3px);
+}
+
+.card-planeta:active{
+    transform: scale(0.96);
+}
+
+.card-planeta img{
+    width: 48%;
+    max-width: 76px;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+}
+
+.card-planeta .nome-planeta{
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.card-planeta .bonus-planeta{
+    font-size: 10px;
+    color: #c7b5d8;
+}
+
+.card-planeta .preco-planeta{
+    font-size: 12px;
+    color: #ffe4b8;
+}
+
+#mensagemLoja{
+    margin: 10px 0 0;
+    text-align: center;
+    font-size: 11px;
+    color: #bfb0d6;
+}
+
+#abrirCursores{
+    display: block;
+    width: 36px;
+    height: 36px;
+    margin: 0 auto 8px;
+    padding: 0;
+    color: #f6eaff;
+    background: #29253d;
+    border: 1px solid #8d74aa;
+    border-radius: 9px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+#painelCursores{
+    position: fixed;
+    z-index: 20;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(340px, calc(100vw - 32px));
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 18px;
+    color: #f7eaff;
+    background: #201d32;
+    border: 1px solid #806a9c;
+    border-radius: 16px;
+    box-shadow: 0 0 35px #0009;
+}
+
+#painelCursores[hidden]{
+    display: none;
+}
+
+.cabecalho-cursores{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.cabecalho-cursores h2{
+    margin: 0;
+    font-size: 14px;
+    letter-spacing: 2px;
+}
+
+.abas-customizacao{
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.aba-btn{
+    flex: 1;
+    padding: 6px 0;
+    background: #29253d;
+    border: 1px solid #5c4b70;
+    border-radius: 8px;
+    color: #c7b5d8;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.aba-btn.ativa{
+    background: #40334f;
+    border-color: #e6c6ff;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+#fecharCursores{
+    width: 30px;
+    height: 30px;
+    color: #f7eaff;
+    background: #39304e;
+    border: 1px solid #655375;
+    border-radius: 8px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.cursor-inventario{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 10px;
+    color: #f7eaff;
+    text-align: left;
+    background: #29253d;
+    border: 1px solid #5c4b70;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.cursor-inventario.selecionado{
+    border-color: #e6c6ff;
+    background: #40334f;
+}
+
+.estrela-cadante{
+    position: fixed;
+    font-size: 34px;
+    cursor: pointer;
+    z-index: 100;
+    animation: pulsoEstrela 0.8s infinite alternate, flutuarCadante 4.5s linear;
+    filter: drop-shadow(0 0 12px #ffe600);
+}
+
+@keyframes pulsoEstrela{
+    0%{ transform: scale(1); }
+    100%{ transform: scale(1.3); }
+}
+
+@keyframes flutuarCadante{
+    0%{ opacity: 0; transform: translateY(-20px) scale(0.5); }
+    15%{ opacity: 1; }
+    85%{ opacity: 1; }
+    100%{ opacity: 0; transform: translateY(20px) scale(0.5); }
+}
+
+.portal-misterioso{
+    position: fixed;
+    font-size: 40px;
+    cursor: pointer;
+    z-index: 100;
+    animation: girarPortal 3s linear infinite;
+    filter: drop-shadow(0 0 15px #a855f7);
+}
+
+@keyframes girarPortal{
+    0%{ transform: rotate(0deg) scale(1); }
+    50%{ transform: rotate(180deg) scale(1.2); }
+    100%{ transform: rotate(360deg) scale(1); }
+}
