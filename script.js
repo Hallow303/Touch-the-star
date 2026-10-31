@@ -2,1040 +2,630 @@ let points = 0;
 let pointsPerClick = 1;
 let passivePoints = 0;
 let gameStarted = false;
-let eventsStarted = false;
-
+let gameEnded = false;
+const MAX_POINTS = 10000000;
 let currentLevel = 1;
 let experience = 0;
 let requiredExperience = 100;
-
-let xpRequirementGrowth = 0.50;
-let xpMultiplier = 1;
 let levelBonus = 1.05;
+let totalClicks = 0;
+let clicksForNeptune = 0;
+const SHOP_SIZE = 3;
 
-const startScreen = document.getElementById("inicio");
-const gameScreen = document.getElementById("jogo");
-const playButton = document.getElementById("jogar");
-const pointsDisplay = document.getElementById("pontos");
-const shopContainer = document.getElementById("estoquePlanetas");
-const shopMessage = document.getElementById("mensagemLoja");
-const planetsArea = document.getElementById("planetasTela");
-const levelDisplay = document.getElementById("nivel");
-const experienceDisplay = document.getElementById("experiencia");
-const xpBar = document.getElementById("progresso-xp");
-const customizationButton = document.getElementById("abrirCursores");
-const customizationPanel = document.getElementById("painelCursores");
-const cursorList = document.getElementById("listaCursores");
-const particleList = document.getElementById("listaParticulas");
-const closeCustomizationButton = document.getElementById("fecharCursores");
-const cursorTab = document.getElementById("abaCursores");
-const particleTab = document.getElementById("abaParticulas");
-
-
-const planets = [
+let planetas = [
     {
-        id: "earth",
-        name: "Earth",
-        image: "image/Terra.png",
-        price: 100,
-        bonus: "+5% to all gains",
-        size: 95,
-        type: "planet"
+        id: "earth", 
+        name: "Earth", 
+        image: "image/Terra.png", 
+        price: 50, 
+        bonus: "+1 passive point/s", 
+        size: 95
     },
     {
-        id: "mars",
-        name: "Mars",
-        image: "image/Marte.png",
-        price: 150,
-        bonus: "10% chance of double points",
-        size: 78,
-        type: "planet"
+        id: "mercury",
+        name: "Mercury",
+        image: "image/Mercurio.png",
+        price: 250,
+        bonus: "+2 points per click",
+        size: 65
+    },
+    {
+        id: "mars", 
+        name: "Mars", 
+        image: "image/Marte.png", 
+        price: 500, 
+        bonus: "+3 points per click", 
+        size: 78
+    },
+    {
+        id: "venus",
+        name: "Venus",
+        image: "image/Vernus.png",
+        price: 1000,
+        bonus: "+25% click production",
+        size: 88
     },
     {
         id: "jupiter",
         name: "Jupiter",
         image: "image/Jupiter.png",
-        price: 200,
-        bonus: "+1 passive point/s",
-        size: 145,
-        type: "planet"
+        price: 2500,
+        bonus: "Doubles passive production",
+        size: 145
     },
     {
         id: "saturn",
         name: "Saturn",
         image: "image/Saturno.png",
-        price: 300,
-        bonus: "+8% to all gains",
-        size: 125,
-        type: "planet"
+        price: 5000,
+        bonus: "+25% XP",
+        size: 125
+    },
+    {
+        id: "uranus",
+        name: "Uranus",
+        image: "image/Urano.png",
+        price: 7500,
+        bonus: "+50% passive production",
+        size: 105
     },
     {
         id: "neptune",
         name: "Neptune",
         image: "image/Netuno.png",
-        price: 250,
-        bonus: "+15% points per click",
-        size: 90,
-        type: "planet"
+        price: 10000,
+        bonus: "+20 points every 10 clicks",
+        size: 90
+    },
+    {
+        id: "moon",
+        name: "Moon",
+        image: "image/Lua.png",
+        price: 15000,
+        bonus: "+50% XP",
+        size: 75
+    },
+    {
+        id: "sun", 
+        name: "Sun", 
+        image: "image/Sol.png", 
+        price: 25000, 
+        bonus: "+15% all production and XP", 
+        size: 135
     }
 ];
 
-const cursors = [
-    {
-        id: "duck",
-        name: "Duck",
-        file: "duck.cur",
-        price: 50,
-        icon: "🦆",
-        type: "cursor"
-    },
-    {
-        id: "ghost",
-        name: "Ghost",
-        file: "fantasma.cur",
-        price: 75,
-        icon: "👻",
-        type: "cursor"
-    },
-    {
-        id: "rocket",
-        name: "Rocket",
-        file: "foguete.cur",
-        price: 100,
-        icon: "🚀",
-        type: "cursor"
-    },
-    {
-        id: "star",
-        name: "Star",
-        file: "stat.cur",
-        price: 125,
-        icon: "⭐",
-        type: "cursor"
-    },
-    {
-        id: "watermelon",
-        name: "Watermelon",
-        file: "watermelon.cur",
-        price: 150,
-        icon: "🍉",
-        type: "cursor"
-    }
-];
+let planetasComprados = [];
+let estoqueLoja = [];
 
-const particlePacks = [
-    {
-        id: "orbs",
-        name: "Magic Orbs",
-        symbols: ["◒", "◍", "•", "◉"],
-        price: 60,
-        icon: "🔮",
-        type: "particle",
-        bonus: "Magic orb click effect"
-    },
-    {
-        id: "numbers",
-        name: "Numbers",
-        symbols: ["1", "2", "3", "4"],
-        price: 80,
-        icon: "🔢",
-        type: "particle",
-        bonus: "Number click effect"
-    },
-    {
-        id: "party",
-        name: "Party",
-        symbols: ["⭐", "❤️", "🎈", "🎉"],
-        price: 120,
-        icon: "🎉",
-        type: "particle",
-        bonus: "Party click effect"
-    },
-    {
-        id: "tropical",
-        name: "Tropical",
-        symbols: ["🌴", "⚽", "🍹", "🦜"],
-        price: 150,
-        icon: "🌴",
-        type: "particle",
-        bonus: "Tropical click effect"
-    },
-    {
-        id: "halloween",
-        name: "Halloween",
-        symbols: ["🎃", "👻", "🦇", "🧛"],
-        price: 200,
-        icon: "🎃",
-        type: "particle",
-        bonus: "Halloween click effect"
-    }
-];
-
-const upgrades = [
-    {
-        id: "stellar-boost",
-        name: "Stellar Boost",
-        icon: "⚡",
-        price: 120,
-        bonus: "+25% points per click",
-        type: "upgrade",
-        effect: () => {
-            pointsPerClick = Math.floor(pointsPerClick * 1.25);
-        }
-    },
-    {
-        id: "galactic-collector",
-        name: "Galactic Collector",
-        icon: "🌌",
-        price: 180,
-        bonus: "+5 passive points/s",
-        type: "upgrade",
-        effect: () => {
-            passivePoints += 5;
-        }
-    },
-    {
-        id: "supernova-crystal",
-        name: "Supernova Crystal",
-        icon: "💎",
-        price: 250,
-        bonus: "+50% XP gain",
-        type: "upgrade",
-        effect: () => {
-            xpMultiplier *= 1.5;
+function planetaJaFoiComprado(id) {
+    for (let i = 0; i < planetasComprados.length; i++) {
+        if (planetasComprados[i].id === id) {
+            return true;
         }
     }
-];
-
-const purchasedPlanets = [];
-const purchasedCursors = [];
-const purchasedParticles = [];
-const purchasedUpgrades = [];
-
-let activeCursor = null;
-let activeParticle = "default";
-
-let shopStock = [];
-
-function hasPurchased(item) {
-    if (item.type === "planet") {
-        return purchasedPlanets.some(p => p.id === item.id);
-    }
-
-    if (item.type === "cursor") {
-        return purchasedCursors.some(c => c.id === item.id);
-    }
-
-    if (item.type === "particle") {
-        return purchasedParticles.some(p => p.id === item.id);
-    }
-
-    if (item.type === "upgrade") {
-        return purchasedUpgrades.some(u => u.id === item.id);
-    }
-
     return false;
 }
 
-function getAvailableItems() {
-    return [
-        ...planets.filter(p => !hasPurchased(p)),
-        ...particlePacks.filter(p => !hasPurchased(p)),
-        ...(currentLevel >= 3
-            ? upgrades.filter(u => !hasPurchased(u))
-            : []),
-        ...(currentLevel >= 5
-            ? cursors.filter(c => !hasPurchased(c))
-            : [])
-    ];
+function listarPlanetasDisponiveis() {
+    let planetasDisponiveis = [];
+    for (let i = 0; i < planetas.length; i++) {
+        if (!planetaJaFoiComprado(planetas[i].id)) {
+            planetasDisponiveis.push(planetas[i]);
+        }
+    }
+    planetasDisponiveis.sort(function(a, b) {
+        return a.price - b.price;
+    });
+    return planetasDisponiveis;
 }
 
-function showShopMessage(message) {
-    shopMessage.textContent = message;
+function adicionarPontos(quantidade) {
+    if (gameEnded || quantidade <= 0) {
+        return;
+    }
+    points += quantidade;
+    if (points >= MAX_POINTS) {
+        points = MAX_POINTS;
+        mostrarTelaVitoria();
+        return;
+    }
+    mostrarPontosNaTela();
 }
 
-function randomItem(array) {
-    const index = Math.floor(Math.random() * array.length);
-    return array[index];
+function mostrarPontosNaTela() {
+    let textoDaPontuacao = document.getElementById("pontos");
+    if (textoDaPontuacao) {
+        textoDaPontuacao.textContent = "Points: " + Math.floor(points);
+    }
+    let areaDaLoja = document.getElementById("estoquePlanetas");
+    if (!areaDaLoja) {
+        return;
+    }
+    let botoesDosPlanetas = areaDaLoja.querySelectorAll(".card-planeta");
+    for (let i = 0; i < botoesDosPlanetas.length; i++) {
+        let idDoPlaneta = botoesDosPlanetas[i].dataset.planetId;
+        for (let a = 0; a < estoqueLoja.length; a++) {
+            if (estoqueLoja[a].id === idDoPlaneta) {
+                botoesDosPlanetas[i].disabled = points < estoqueLoja[a].price;
+                break;
+            }
+        }
+    }
 }
 
-function refillShop() {
-    const availableItems = getAvailableItems();
-
-    shopStock = shopStock.filter(item =>
-        availableItems.some(available => available.id === item.id)
-    );
-
-    while (shopStock.length < 3) {
-        const remaining = availableItems.filter(item => !shopStock.some(stockItem => stockItem.id === item.id));
-
-        if (remaining.length === 0) {
+function reporEstoqueDaLoja() {
+    let areaDaLoja = document.getElementById("estoquePlanetas");
+    if (!areaDaLoja || gameEnded) {
+        return;
+    }
+    let planetasDisponiveis = listarPlanetasDisponiveis();
+    let estoqueAtualizado = [];
+    for (let i = 0; i < estoqueLoja.length; i++) {
+        if (!planetaJaFoiComprado(estoqueLoja[i].id)) {
+            estoqueAtualizado.push(estoqueLoja[i]);
+        }
+    }
+    estoqueLoja = estoqueAtualizado;
+    while (estoqueLoja.length < SHOP_SIZE) {
+        let encontrouPlaneta = false;
+        for (let i = 0; i < planetasDisponiveis.length; i++) {
+            let planetaJaEstaNaLoja = false;
+            for (let a = 0; a < estoqueLoja.length; a++) {
+                if (estoqueLoja[a].id === planetasDisponiveis[i].id) {
+                    planetaJaEstaNaLoja = true;
+                    break;
+                }
+            }
+            if (planetaJaEstaNaLoja) {
+                continue;
+            }
+            estoqueLoja.push(planetasDisponiveis[i]);
+            encontrouPlaneta = true;
             break;
         }
-
-        shopStock.push(randomItem(remaining));
-    }
-
-    renderShop();
-}
-
-function renderShop() {
-    shopContainer.innerHTML = "";
-
-    shopStock.forEach(item => {
-        const card = document.createElement("button");
-
-        card.className = "card-planeta";
-        card.type = "button";
-        card.title = `${item.name} — ${item.price} stars`;
-
-        if (item.image) {
-            const image = document.createElement("img");
-
-            image.src = item.image;
-            image.alt = item.name;
-            image.draggable = false;
-
-            card.appendChild(image);
-        } else {
-            const icon = document.createElement("span");
-
-            icon.textContent = item.icon;
-            icon.style.fontSize = "38px";
-
-            card.appendChild(icon);
+        if (!encontrouPlaneta) {
+            break;
         }
-
-        const name = document.createElement("span");
-        name.className = "nome-planeta";
-        name.textContent = item.name;
-
-        const bonus = document.createElement("span");
-        bonus.className = "bonus-planeta";
-        bonus.textContent = item.bonus;
-
-        const price = document.createElement("span");
-        price.className = "preco-planeta";
-        price.textContent = `${item.price} ✧`;
-
-        card.append(name, bonus, price);
-
-        card.addEventListener("click", () => {
-            buyItem(item);
-        });
-
-        shopContainer.appendChild(card);
+    }
+    estoqueLoja.sort(function(a, b) {
+        return a.price - b.price;
     });
-
-    if (shopStock.length === 0) {
-        const message = document.createElement("p");
-
-        message.textContent = "Everything unlocked! ✦";
-        message.style.gridColumn = "1 / -1";
-        message.style.textAlign = "center";
-
-        shopContainer.appendChild(message);
-    }
+    desenharLojaDePlanetas();
 }
 
-function buyItem(item) {
-    if (points < item.price) {
-        showShopMessage("Not enough stars! ✧");
+function desenharLojaDePlanetas() {
+    let areaDaLoja = document.getElementById("estoquePlanetas");
+    if (!areaDaLoja || gameEnded) {
         return;
     }
+    areaDaLoja.innerHTML = "";
+    for (let i = 0; i < estoqueLoja.length; i++) {
+        let planetaDaVez = estoqueLoja[i];
+        let cartaoPlaneta = document.createElement("button");
+        cartaoPlaneta.className = "card-planeta";
+        cartaoPlaneta.type = "button";
+        cartaoPlaneta.dataset.planetId = planetaDaVez.id;
+        cartaoPlaneta.title = planetaDaVez.name + " - " + planetaDaVez.price + " stars";
+        cartaoPlaneta.disabled = points < planetaDaVez.price;
+        let imagemDoPlaneta = document.createElement("img");
+        imagemDoPlaneta.src = planetaDaVez.image;
+        imagemDoPlaneta.alt = planetaDaVez.name;
+        imagemDoPlaneta.draggable = false;
+        let nomeDoPlaneta = document.createElement("span");
+        nomeDoPlaneta.className = "nome-planeta";
+        nomeDoPlaneta.textContent = planetaDaVez.name;
+        let bonusDoPlaneta = document.createElement("span");
+        bonusDoPlaneta.className = "bonus-planeta";
+        bonusDoPlaneta.textContent = planetaDaVez.bonus;
+        let precoDoPlaneta = document.createElement("span");
+        precoDoPlaneta.className = "preco-planeta";
+        precoDoPlaneta.textContent = planetaDaVez.price + " ✧";
+        cartaoPlaneta.appendChild(imagemDoPlaneta);
+        cartaoPlaneta.appendChild(nomeDoPlaneta);
+        cartaoPlaneta.appendChild(bonusDoPlaneta);
+        cartaoPlaneta.appendChild(precoDoPlaneta);
+        cartaoPlaneta.addEventListener("click", function() {
+            comprarPlaneta(planetaDaVez);
+        });
+        areaDaLoja.appendChild(cartaoPlaneta);
+    }
+    if (estoqueLoja.length === 0) {
+        let avisoDaLoja = document.createElement("p");
+        avisoDaLoja.textContent = "All planets purchased! ✦";
+        avisoDaLoja.style.gridColumn = "1 / -1";
+        avisoDaLoja.style.textAlign = "center";
+        areaDaLoja.appendChild(avisoDaLoja);
+    }
+}
 
-    const index = shopStock.findIndex(
-        stockItem => stockItem.id === item.id
-    );
-
-    if (index === -1) {
+function comprarPlaneta(planeta) {
+    if (!gameStarted || gameEnded) {
         return;
     }
-
-    points -= item.price;
-    shopStock.splice(index, 1);
-
-    if (item.type === "planet") {
-        purchasedPlanets.push(item);
-        addPlanetToScreen(item);
-    } else if (item.type === "cursor") {
-        purchasedCursors.push(item);
-        renderCursorInventory();
-    } else if (item.type === "particle") {
-        purchasedParticles.push(item);
-        renderParticleInventory();
-    } else if (item.type === "upgrade") {
-        purchasedUpgrades.push(item);
-        item.effect();
-    }
-
-    showShopMessage(`${item.name} unlocked! ✦`);
-
-    refillShop();
-    updatePoints();
-    updateXPBar();
-}
-
-playButton.addEventListener("click", () => {
-    if (gameStarted) {
+    if (planetaJaFoiComprado(planeta.id) || points < planeta.price) {
         return;
     }
-
-    gameStarted = true;
-
-    startScreen.style.display = "none";
-    gameScreen.style.display = "block";
-
-    startEventManager();
-});
-
-
-function getGeneralBonus() {
-    let bonus = 0;
-
-    if (purchasedPlanets.some(p => p.id === "earth")) {
-        bonus += 0.05;
+    let posicaoNaLoja = -1;
+    for (let i = 0; i < estoqueLoja.length; i++) {
+        if (estoqueLoja[i].id === planeta.id) {
+            posicaoNaLoja = i;
+            break;
+        }
     }
-
-    if (purchasedPlanets.some(p => p.id === "saturn")) {
-        bonus += 0.08;
-    }
-
-    return bonus;
-}
-
-function getClickBonus() {
-    return purchasedPlanets.some(p => p.id === "neptune")
-        ? 0.15
-        : 0;
-}
-
-function calculateClickGain() {
-    let gain =
-        pointsPerClick *
-        (1 + getGeneralBonus() + getClickBonus()) *
-        levelBonus;
-
-    if (
-        purchasedPlanets.some(p => p.id === "mars") &&
-        Math.random() < 0.10
-    ) {
-        gain *= 2;
-        showShopMessage("Lucky star! Double points! ✦");
-    }
-
-    return gain;
-}
-
-function updatePoints() {
-    pointsDisplay.textContent = `Points: ${Math.floor(points)}`;
-}
-
-document.addEventListener("click", event => {
-    if (!gameStarted) {
+    if (posicaoNaLoja === -1) {
         return;
     }
-
-    if (
-        event.target.closest(
-            "#inicio, #topo, #loja, #painelCursores, " +
-            "#abrirCursores, .planeta-movel, " +
-            ".estrela-cadante, .portal-misterioso"
-        )
-    ) {
-        return;
-    }
-
-    const gain = calculateClickGain();
-
-    points += gain;
-
-    gainExperience(gain);
-
-    updatePoints();
-    explodeParticles(event.clientX, event.clientY);
-});
-
-
-function updateXPBar() {
-    levelDisplay.textContent = `LEVEL ${currentLevel}`;
-
-    experienceDisplay.textContent =
-        `${Math.floor(experience)} / ${requiredExperience} XP`;
-
-    const progress = Math.min(
-        100,
-        (experience / requiredExperience) * 100
-    );
-
-    xpBar.style.width = `${progress}%`;
+    points -= planeta.price;
+    estoqueLoja.splice(posicaoNaLoja, 1);
+    planetasComprados.push(planeta);
+    criarPlanetaNoCenario(planeta);
+    mostrarPontosNaTela();
+    reporEstoqueDaLoja();
 }
 
-function gainExperience(amount) {
-    experience += amount * xpMultiplier;
+let telaInicial = document.getElementById("inicio");
+let telaDoJogo = document.getElementById("jogo");
+let botaoDeJogar = document.getElementById("jogar");
 
+if (telaDoJogo) {
+    telaDoJogo.style.display = "none";
+}
+
+if (botaoDeJogar) {
+    botaoDeJogar.addEventListener("click", function() {
+        if (gameStarted || gameEnded) {
+            return;
+        }
+        gameStarted = true;
+        if (telaInicial) {
+            telaInicial.style.display = "none";
+        }
+        if (telaDoJogo) {
+            telaDoJogo.style.display = "block";
+        }
+        mostrarPontosNaTela();
+        mostrarNivelEExperiencia();
+        reporEstoqueDaLoja();
+    });
+}
+
+function calcularPontosDoClique() {
+    let pontosGanhos = pointsPerClick;
+    if (planetaJaFoiComprado("mars")) {
+        pontosGanhos += 3;
+    }
+    if (planetaJaFoiComprado("mercury")) {
+        pontosGanhos += 2;
+    }
+    if (planetaJaFoiComprado("venus")) {
+        pontosGanhos *= 1.25;
+    }
+    if (planetaJaFoiComprado("sun")) {
+        pontosGanhos *= 1.15;
+    }
+    pontosGanhos *= levelBonus;
+    return pontosGanhos;
+}
+
+function calcularPontosPassivos() {
+    let pontosGanhos = passivePoints;
+    if (planetaJaFoiComprado("earth")) {
+        pontosGanhos += 1;
+    }
+    if (planetaJaFoiComprado("jupiter")) {
+        pontosGanhos *= 2;
+    }
+    if (planetaJaFoiComprado("uranus")) {
+        pontosGanhos *= 1.5;
+    }
+    if (planetaJaFoiComprado("sun")) {
+        pontosGanhos *= 1.15;
+    }
+    pontosGanhos *= levelBonus;
+    return pontosGanhos;
+}
+
+function calcularBonusDeExperiencia() {
+    let bonusDeXP = 1;
+    if (planetaJaFoiComprado("saturn")) {
+        bonusDeXP *= 1.25;
+    }
+    if (planetaJaFoiComprado("moon")) {
+        bonusDeXP *= 1.5;
+    }
+    if (planetaJaFoiComprado("sun")) {
+        bonusDeXP *= 1.15;
+    }
+    return bonusDeXP;
+}
+
+function mostrarNivelEExperiencia() {
+    let textoDoNivel = document.getElementById("nivel");
+    let textoDaExperiencia = document.getElementById("experiencia");
+    let preenchimentoDaBarraXP = document.getElementById("progresso-xp");
+    if (textoDoNivel) {
+        textoDoNivel.textContent = "LEVEL " + currentLevel;
+    }
+    if (textoDaExperiencia) {
+        textoDaExperiencia.textContent = Math.floor(experience) + " / " + requiredExperience + " XP";
+    }
+    if (preenchimentoDaBarraXP) {
+        let porcentagemXP = (experience / requiredExperience) * 100;
+        if (porcentagemXP > 100) {
+            porcentagemXP = 100;
+        }
+        preenchimentoDaBarraXP.style.width = porcentagemXP + "%";
+    }
+}
+
+function ganharExperiencia(quantidade) {
+    if (quantidade <= 0 || gameEnded) {
+        return;
+    }
+    let experienciaRecebida = quantidade * calcularBonusDeExperiencia();
+    experience += experienciaRecebida;
     while (experience >= requiredExperience) {
         experience -= requiredExperience;
-        levelUp();
+        avancarNivel();
     }
-
-    updateXPBar();
+    mostrarNivelEExperiencia();
 }
 
-function levelUp() {
+function avancarNivel() {
     currentLevel++;
-
-    requiredExperience = Math.ceil(
-        requiredExperience + 100 * xpRequirementGrowth
-    );
-
+    requiredExperience += 50;
     levelBonus *= 1.05;
-
     if (currentLevel % 5 === 0) {
         pointsPerClick += 2;
-
-        showShopMessage(
-            `Level ${currentLevel}! +2 points per click! ✦`
-        );
     }
-
     if (currentLevel % 10 === 0) {
         passivePoints += 2;
-
-        showShopMessage(
-            `Level ${currentLevel}! +2 passive points/s! ✦`
-        );
     }
-
-    refillShop();
-    updatePoints();
-    updateXPBar();
 }
 
-function explodeParticles(x, y) {
-    const colors = [
-        "#fff0b8",
-        "#f7d5ff",
-        "#d9ceff",
-        "#ffffff",
-        "#ffcce5",
-        "#c6a4e8"
-    ];
-
-    let symbols = ["✦", "✧", "⋆", "★"];
-
-    if (activeParticle !== "default") {
-        const pack = particlePacks.find(
-            p => p.id === activeParticle
-        );
-
-        if (pack) {
-            symbols = pack.symbols;
-        }
+function criarParticulasDoClique(x, y) {
+    let simbolos = ["✦", "✧", "⋆", "★"];
+    let cores = ["#fff0b8", "#f7d5ff", "#d9ceff", "#ffffff", "#ffcce5"];
+    for (let i = 0; i < 10; i++) {
+        let estrela = document.createElement("span");
+        let simboloEscolhido = Math.floor(Math.random() * simbolos.length);
+        let corEscolhida = Math.floor(Math.random() * cores.length);
+        estrela.textContent = simbolos[simboloEscolhido];
+        estrela.style.position = "fixed";
+        estrela.style.left = x + "px";
+        estrela.style.top = y + "px";
+        estrela.style.color = cores[corEscolhida];
+        estrela.style.fontSize = (12 + Math.random() * 10) + "px";
+        estrela.style.pointerEvents = "none";
+        estrela.style.zIndex = "9999";
+        document.body.appendChild(estrela);
+        let movimentoX = (Math.random() - 0.5) * 70;
+        let movimentoY = (Math.random() - 0.5) * 70;
+        let animacaoDaEstrela = estrela.animate([
+            {transform: "translate(-50%, -50%) scale(0)", opacity: 0},
+            {transform: "translate(" + movimentoX + "px, " + movimentoY + "px) scale(1)", opacity: 1},
+            {transform: "translate(" + (movimentoX * 1.5) + "px, " + (movimentoY * 1.5) + "px) scale(0)", opacity: 0}
+        ], {
+            duration: 500,
+            easing: "ease-out"
+        });
+        animacaoDaEstrela.onfinish = function() {
+            estrela.remove();
+        };
     }
+}
 
-    for (let i = 0; i < 9; i++) {
-        const particle = document.createElement("span");
-
-        particle.textContent = randomItem(symbols);
-
-        particle.style.position = "fixed";
-        particle.style.left = `${x}px`;
-        particle.style.top = `${y}px`;
-
-        particle.style.color = randomItem(colors);
-        particle.style.fontSize = `${10 + Math.random() * 14}px`;
-
-        particle.style.pointerEvents = "none";
-        particle.style.zIndex = "9999";
-
-        document.body.appendChild(particle);
-
-        const angle = Math.random() * Math.PI * 2;
-        const distance = 25 + Math.random() * 50;
-
-        const dx = Math.cos(angle) * distance;
-        const dy = Math.sin(angle) * distance;
-
-        const animation = particle.animate(
-            [
-                {
-                    transform: "translate(-50%, -50%) scale(0)",
-                    opacity: 0
-                },
-                {
-                    transform:
-                        `translate(${dx * 0.5}px, ${dy * 0.5 - 8}px) scale(1.2)`,
-                    opacity: 1,
-                    offset: 0.3
-                },
-                {
-                    transform:
-                        `translate(${dx}px, ${dy - 15}px) scale(0.2)`,
-                    opacity: 0
-                }
-            ],
-            {
-                duration: 600 + Math.random() * 300,
-                easing: "ease-out"
+document.addEventListener("click", function(event) {
+    if (!gameStarted || gameEnded) {
+        return;
+    }
+    let alvoDoClique = event.target;
+    if (!alvoDoClique.closest) {
+        return;
+    }
+    if (
+        alvoDoClique.closest("#inicio") ||
+        alvoDoClique.closest("#topo") ||
+        alvoDoClique.closest("#loja") ||
+        alvoDoClique.closest("#estoquePlanetas") ||
+        alvoDoClique.closest(".planeta-movel")
+    ) {
+        return;
+    }
+    let pontosDoClique = calcularPontosDoClique();
+    totalClicks++;
+    criarParticulasDoClique(event.clientX, event.clientY);
+    adicionarPontos(pontosDoClique);
+    if (gameEnded) {
+        return;
+    }
+    ganharExperiencia(pontosDoClique);
+    if (planetaJaFoiComprado("neptune")) {
+        clicksForNeptune++;
+        if (clicksForNeptune >= 10) {
+            clicksForNeptune -= 10;
+            adicionarPontos(20);
+            if (!gameEnded) {
+                ganharExperiencia(20);
             }
-        );
-
-        animation.onfinish = () => particle.remove();
+        }
     }
-}
+});
 
-function startEventManager() {
-    if (eventsStarted) {
+function criarPlanetaNoCenario(planeta) {
+    let areaDosPlanetas = document.getElementById("planetasTela");
+    if (!areaDosPlanetas) {
         return;
     }
-
-    eventsStarted = true;
-
-    setInterval(() => {
-        if (gameStarted) {
-            spawnFallingStar();
-        }
-    }, 12000);
-
-    setInterval(() => {
-        if (gameStarted) {
-            spawnMysteryPortal();
-        }
-    }, 25000);
-}
-
-function spawnFallingStar() {
-    const star = document.createElement("div");
-
-    star.className = "estrela-cadante";
-    star.textContent = "⭐";
-    star.setAttribute("aria-label", "Collect the falling star");
-
-    const x = Math.random() * Math.max(1, window.innerWidth - 60) + 30;
-    const y = Math.random() * Math.max(1, window.innerHeight - 200) + 100;
-
-    star.style.left = `${x}px`;
-    star.style.top = `${y}px`;
-
-    star.addEventListener("click", event => {
-        event.stopPropagation();
-
-        const bonus = Math.max(
-            80,
-            Math.floor(pointsPerClick * 8)
-        );
-
-        points += bonus;
-
-        gainExperience(bonus / 4);
-
-        showShopMessage(`Star collected! +${bonus} points! ✦`);
-
-        updatePoints();
-        explodeParticles(event.clientX, event.clientY);
-
-        star.remove();
-    });
-
-    document.body.appendChild(star);
-
-    setTimeout(() => {
-        if (star.isConnected) {
-            star.remove();
-        }
-    }, 4500);
-}
-
-function spawnMysteryPortal() {
-    const portal = document.createElement("div");
-
-    portal.className = "portal-misterioso";
-    portal.textContent = "🌀";
-    portal.setAttribute("aria-label", "Enter the mystery portal");
-
-    const x = Math.random() * Math.max(1, window.innerWidth - 80) + 40;
-    const y = Math.random() * Math.max(1, window.innerHeight - 250) + 100;
-
-    portal.style.left = `${x}px`;
-    portal.style.top = `${y}px`;
-
-    portal.addEventListener("click", event => {
-        event.stopPropagation();
-
-        if (Math.random() < 0.5) {
-            const bonus = Math.floor(points * 0.3) + 150;
-
-            points += bonus;
-
-            gainExperience(bonus / 4);
-
-            showShopMessage(
-                `🌀 The portal granted +${bonus} points! ✦`
-            );
-        } else {
-            gainExperience(150);
-
-            showShopMessage(
-                "🌀 The portal granted +150 bonus XP! ✦"
-            );
-        }
-
-        updatePoints();
-        explodeParticles(event.clientX, event.clientY);
-
-        portal.remove();
-    });
-
-    document.body.appendChild(portal);
-
-    setTimeout(() => {
-        if (portal.isConnected) {
-            portal.remove();
-        }
-    }, 6000);
-}
-
-cursorTab.addEventListener("click", () => {
-    cursorTab.classList.add("ativa");
-    particleTab.classList.remove("ativa");
-
-    cursorList.hidden = false;
-    particleList.hidden = true;
-});
-
-particleTab.addEventListener("click", () => {
-    particleTab.classList.add("ativa");
-    cursorTab.classList.remove("ativa");
-
-    particleList.hidden = false;
-    cursorList.hidden = true;
-});
-
-
-function renderCursorInventory() {
-    cursorList.innerHTML = "";
-
-    const defaultButton = document.createElement("button");
-
-    defaultButton.className = "cursor-inventario";
-    defaultButton.type = "button";
-
-    const defaultIcon = document.createElement("span");
-
-    defaultIcon.className = "cursor-icone";
-    defaultIcon.textContent = "✧";
-
-    const defaultText = document.createElement("span");
-    defaultText.textContent = "Default Cursor";
-
-    const defaultDetail = document.createElement("small");
-    defaultDetail.textContent = "Original star pointer";
-
-    defaultText.appendChild(defaultDetail);
-
-    defaultButton.append(defaultIcon, defaultText);
-
-    if (activeCursor === null) {
-        defaultButton.classList.add("selecionado");
-    }
-
-    defaultButton.addEventListener("click", () => {
-        activeCursor = null;
-
-        applyCursor(null);
-        renderCursorInventory();
-    });
-
-    cursorList.appendChild(defaultButton);
-
-    purchasedCursors.forEach(cursor => {
-        const item = document.createElement("button");
-
-        item.className = "cursor-inventario";
-        item.type = "button";
-
-        const icon = document.createElement("span");
-
-        icon.className = "cursor-icone";
-        icon.textContent = cursor.icon;
-
-        const text = document.createElement("span");
-        text.textContent = cursor.name;
-
-        const detail = document.createElement("small");
-
-        detail.textContent =
-            activeCursor === cursor.id
-                ? "Equipped ✓"
-                : "Click to equip";
-
-        text.appendChild(detail);
-        item.append(icon, text);
-
-        if (activeCursor === cursor.id) {
-            item.classList.add("selecionado");
-        }
-
-        item.addEventListener("click", () => {
-            activeCursor = cursor.id;
-
-            applyCursor(cursor);
-            renderCursorInventory();
-        });
-
-        cursorList.appendChild(item);
-    });
-}
-
-function renderParticleInventory() {
-    particleList.innerHTML = "";
-
-    const defaultButton = document.createElement("button");
-
-    defaultButton.className = "cursor-inventario";
-    defaultButton.type = "button";
-
-    const defaultIcon = document.createElement("span");
-
-    defaultIcon.className = "cursor-icone";
-    defaultIcon.textContent = "✦";
-
-    const defaultText = document.createElement("span");
-    defaultText.textContent = "Default Stars";
-
-    const defaultDetail = document.createElement("small");
-    defaultDetail.textContent = "Original click effect";
-
-    defaultText.appendChild(defaultDetail);
-
-    defaultButton.append(defaultIcon, defaultText);
-
-    if (activeParticle === "default") {
-        defaultButton.classList.add("selecionado");
-    }
-
-    defaultButton.addEventListener("click", () => {
-        activeParticle = "default";
-        renderParticleInventory();
-    });
-
-    particleList.appendChild(defaultButton);
-
-    purchasedParticles.forEach(pack => {
-        const item = document.createElement("button");
-
-        item.className = "cursor-inventario";
-        item.type = "button";
-
-        const icon = document.createElement("span");
-
-        icon.className = "cursor-icone";
-        icon.textContent = pack.icon;
-
-        const text = document.createElement("span");
-        text.textContent = pack.name;
-
-        const detail = document.createElement("small");
-
-        detail.textContent =
-            activeParticle === pack.id
-                ? "Equipped ✓"
-                : "Click to equip";
-
-        text.appendChild(detail);
-        item.append(icon, text);
-
-        if (activeParticle === pack.id) {
-            item.classList.add("selecionado");
-        }
-
-        item.addEventListener("click", () => {
-            activeParticle = pack.id;
-            renderParticleInventory();
-        });
-
-        particleList.appendChild(item);
-    });
-}
-
-function applyCursor(cursor) {
-    const elements = [
-        document.documentElement,
-        document.body
-    ];
-
-    const cursorValue = cursor
-        ? `url("curs/${cursor.file}"), auto`
-        : `url("curs/star.cur"), auto`;
-
-    elements.forEach(element => {
-        element.style.setProperty(
-            "cursor",
-            cursorValue,
-            "important"
-        );
-    });
-}
-
-customizationButton.addEventListener("click", () => {
-    renderCursorInventory();
-    renderParticleInventory();
-
-    customizationPanel.hidden = false;
-});
-
-closeCustomizationButton.addEventListener("click", () => {
-    customizationPanel.hidden = true;
-});
-
-document.addEventListener("keydown", event => {
-    if (event.key === "Escape") {
-        customizationPanel.hidden = true;
-    }
-});
-
-
-function addPlanetToScreen(planet) {
-    const id = `planet-${planet.id}`;
-
-    if (document.getElementById(id)) {
+    let idDoPlaneta = "planet-" + planeta.id;
+    if (document.getElementById(idDoPlaneta)) {
         return;
     }
-
-    const size = planet.size;
-
-    const element = document.createElement("div");
-
-    element.className = "planeta-movel";
-    element.id = id;
-
-    element.style.setProperty("--tamanho", `${size}px`);
-    element.style.width = `${size}px`;
-    element.style.height = `${size}px`;
-
-    const halfSize = size / 2;
-
-    const x = Math.max(
-        halfSize,
-        Math.min(
-            window.innerWidth - halfSize,
-            window.innerWidth * 0.25 +
-                Math.random() * window.innerWidth * 0.5
-        )
-    );
-
-    const y = Math.max(
-        halfSize,
-        Math.min(
-            window.innerHeight - halfSize,
-            window.innerHeight * 0.2 +
-                Math.random() * window.innerHeight * 0.35
-        )
-    );
-
-    element.style.left = `${x}px`;
-    element.style.top = `${y}px`;
-
-    const image = document.createElement("img");
-
-    image.src = planet.image;
-    image.alt = planet.name;
-    image.draggable = false;
-
-    element.appendChild(image);
-    planetsArea.appendChild(element);
-
-    makeDraggable(element, size);
+    let tamanhoDoPlaneta = planeta.size;
+    let planetaNaTela = document.createElement("div");
+    planetaNaTela.className = "planeta-movel";
+    planetaNaTela.id = idDoPlaneta;
+    planetaNaTela.style.setProperty("--tamanho", tamanhoDoPlaneta + "px");
+    planetaNaTela.style.width = tamanhoDoPlaneta + "px";
+    planetaNaTela.style.height = tamanhoDoPlaneta + "px";
+    planetaNaTela.style.position = "absolute";
+    planetaNaTela.style.touchAction = "none";
+    let tamanhoDaArea = areaDosPlanetas.getBoundingClientRect();
+    let posicaoX = tamanhoDoPlaneta / 2 + Math.random() * Math.max(0, tamanhoDaArea.width - tamanhoDoPlaneta);
+    let posicaoY = tamanhoDoPlaneta / 2 + Math.random() * Math.max(0, tamanhoDaArea.height - tamanhoDoPlaneta);
+    planetaNaTela.style.left = posicaoX + "px";
+    planetaNaTela.style.top = posicaoY + "px";
+    planetaNaTela.style.zIndex = "5";
+    let imagemDoPlaneta = document.createElement("img");
+    imagemDoPlaneta.src = planeta.image;
+    imagemDoPlaneta.alt = planeta.name;
+    imagemDoPlaneta.draggable = false;
+    imagemDoPlaneta.style.width = "100%";
+    imagemDoPlaneta.style.height = "100%";
+    imagemDoPlaneta.style.objectFit = "contain";
+    imagemDoPlaneta.style.pointerEvents = "none";
+    planetaNaTela.appendChild(imagemDoPlaneta);
+    areaDosPlanetas.appendChild(planetaNaTela);
+    ativarArrasteDoPlaneta(planetaNaTela, tamanhoDoPlaneta);
 }
 
-function makeDraggable(element, size) {
-    let dragging = false;
-    let offsetX = 0;
-    let offsetY = 0;
-
-    const halfSize = size / 2;
-
-    element.addEventListener("pointerdown", event => {
-        if (event.button !== 0 && event.pointerType === "mouse") {
+function ativarArrasteDoPlaneta(planetaNaTela, tamanhoDoPlaneta) {
+    let estaArrastando = false;
+    let distanciaDoPonteiroX = 0;
+    let distanciaDoPonteiroY = 0;
+    planetaNaTela.addEventListener("pointerdown", function(event) {
+        if (!gameStarted || gameEnded) {
             return;
         }
-
-        dragging = true;
-
-        offsetX = event.clientX - parseFloat(element.style.left);
-        offsetY = event.clientY - parseFloat(element.style.top);
-
-        element.style.zIndex = "6";
-
-        element.setPointerCapture(event.pointerId);
-
+        if (event.pointerType === "mouse" && event.button !== 0) {
+            return;
+        }
+        let posicaoDoPlaneta = planetaNaTela.getBoundingClientRect();
+        estaArrastando = true;
+        distanciaDoPonteiroX = event.clientX - (posicaoDoPlaneta.left + posicaoDoPlaneta.width / 2);
+        distanciaDoPonteiroY = event.clientY - (posicaoDoPlaneta.top + posicaoDoPlaneta.height / 2);
+        planetaNaTela.style.zIndex = "99999";
+        planetaNaTela.setPointerCapture(event.pointerId);
         event.preventDefault();
     });
-
-    element.addEventListener("pointermove", event => {
-        if (!dragging) {
+    planetaNaTela.addEventListener("pointermove", function(event) {
+        if (!estaArrastando || gameEnded) {
             return;
         }
-
-        let x = event.clientX - offsetX;
-        let y = event.clientY - offsetY;
-
-        x = Math.max(
-            halfSize,
-            Math.min(window.innerWidth - halfSize, x)
-        );
-
-        y = Math.max(
-            halfSize,
-            Math.min(window.innerHeight - halfSize, y)
-        );
-
-        element.style.left = `${x}px`;
-        element.style.top = `${y}px`;
+        let areaDosPlanetas = document.getElementById("planetasTela");
+        if (!areaDosPlanetas) {
+            return;
+        }
+        let tamanhoDaArea = areaDosPlanetas.getBoundingClientRect();
+        let novaPosicaoX = event.clientX - tamanhoDaArea.left - distanciaDoPonteiroX;
+        let novaPosicaoY = event.clientY - tamanhoDaArea.top - distanciaDoPonteiroY;
+        let metadeDoPlaneta = tamanhoDoPlaneta / 2;
+        let limiteDireito = tamanhoDaArea.width - metadeDoPlaneta;
+        let limiteInferior = tamanhoDaArea.height - metadeDoPlaneta;
+        if (novaPosicaoX < metadeDoPlaneta) {
+            novaPosicaoX = metadeDoPlaneta;
+        }
+        if (novaPosicaoY < metadeDoPlaneta) {
+            novaPosicaoY = metadeDoPlaneta;
+        }
+        if (novaPosicaoX > limiteDireito) {
+            novaPosicaoX = limiteDireito;
+        }
+        if (novaPosicaoY > limiteInferior) {
+            novaPosicaoY = limiteInferior;
+        }
+        planetaNaTela.style.left = novaPosicaoX + "px";
+        planetaNaTela.style.top = novaPosicaoY + "px";
     });
-
-    function stopDragging() {
-        dragging = false;
-        element.style.zIndex = "5";
+    function soltarPlaneta() {
+        estaArrastando = false;
+        planetaNaTela.style.zIndex = "5";
     }
-
-    element.addEventListener("pointerup", stopDragging);
-    element.addEventListener("pointercancel", stopDragging);
-    element.addEventListener("lostpointercapture", stopDragging);
+    planetaNaTela.addEventListener("pointerup", soltarPlaneta);
+    planetaNaTela.addEventListener("pointercancel", soltarPlaneta);
+    planetaNaTela.addEventListener("lostpointercapture", soltarPlaneta);
 }
 
-setInterval(() => {
-    if (!gameStarted) {
+function mostrarTelaVitoria() {
+    if (gameEnded) {
         return;
     }
-
-    let passiveGain = passivePoints * levelBonus;
-
-    if (purchasedPlanets.some(p => p.id === "jupiter")) {
-        passiveGain += 1;
+    gameEnded = true;
+    gameStarted = false;
+    points = MAX_POINTS;
+    mostrarPontosNaTela();
+    let telaDoJogo = document.getElementById("jogo");
+    if (telaDoJogo) {
+        telaDoJogo.style.display = "none";
     }
-
-    passiveGain *= 1 + getGeneralBonus();
-
-    if (passiveGain > 0) {
-        points += passiveGain;
-
-        gainExperience(passiveGain / 10);
-
-        updatePoints();
-    }
-}, 1000);
-
-function initializeGame() {
-    refillShop();
-
-    updatePoints();
-    updateXPBar();
-
-    renderCursorInventory();
-    renderParticleInventory();
-
-    applyCursor(null);
+    let telaDeVitoria = document.createElement("div");
+    telaDeVitoria.id = "tela-vitoria";
+    telaDeVitoria.style.position = "fixed";
+    telaDeVitoria.style.top = "0";
+    telaDeVitoria.style.left = "0";
+    telaDeVitoria.style.width = "100%";
+    telaDeVitoria.style.height = "100%";
+    telaDeVitoria.style.display = "flex";
+    telaDeVitoria.style.flexDirection = "column";
+    telaDeVitoria.style.alignItems = "center";
+    telaDeVitoria.style.justifyContent = "center";
+    telaDeVitoria.style.textAlign = "center";
+    telaDeVitoria.style.padding = "25px";
+    telaDeVitoria.style.boxSizing = "border-box";
+    telaDeVitoria.style.background = "radial-gradient(circle, #39304e, #111426)";
+    telaDeVitoria.style.color = "#f7eaff";
+    telaDeVitoria.style.fontFamily = "Trebuchet MS, Arial, sans-serif";
+    telaDeVitoria.style.zIndex = "10000";
+    let tituloDaVitoria = document.createElement("h1");
+    tituloDaVitoria.textContent = "YOU DID IT! ✦";
+    tituloDaVitoria.style.fontSize = "clamp(35px, 7vw, 65px)";
+    tituloDaVitoria.style.marginBottom = "10px";
+    let mensagemDaVitoria = document.createElement("p");
+    mensagemDaVitoria.textContent = "You reached 10 million stars! The universe is yours.";
+    mensagemDaVitoria.style.fontSize = "18px";
+    mensagemDaVitoria.style.maxWidth = "500px";
+    mensagemDaVitoria.style.lineHeight = "1.5";
+    let pontuacaoFinal = document.createElement("h2");
+    pontuacaoFinal.textContent = "10,000,000 ✧";
+    pontuacaoFinal.style.fontSize = "clamp(30px, 6vw, 45px)";
+    pontuacaoFinal.style.margin = "20px 0";
+    let nivelFinal = document.createElement("p");
+    nivelFinal.textContent = "Final level: " + currentLevel;
+    let totalDeCliques = document.createElement("p");
+    totalDeCliques.textContent = "Total clicks: " + totalClicks;
+    let agradecimentoFinal = document.createElement("p");
+    agradecimentoFinal.textContent = "Thank you for playing Click! ♡";
+    agradecimentoFinal.style.marginTop = "30px";
+    agradecimentoFinal.style.opacity = "0.8";
+    telaDeVitoria.appendChild(tituloDaVitoria);
+    telaDeVitoria.appendChild(mensagemDaVitoria);
+    telaDeVitoria.appendChild(pontuacaoFinal);
+    telaDeVitoria.appendChild(nivelFinal);
+    telaDeVitoria.appendChild(totalDeCliques);
+    telaDeVitoria.appendChild(agradecimentoFinal);
+    document.body.appendChild(telaDeVitoria);
 }
 
-initializeGame();
+setInterval(function() {
+    if (!gameStarted || gameEnded) {
+        return;
+    }
+    let pontosPassivosGanhos = calcularPontosPassivos();
+    if (pontosPassivosGanhos <= 0) {
+        return;
+    }
+    adicionarPontos(pontosPassivosGanhos);
+    if (gameEnded) {
+        return;
+    }
+    ganharExperiencia(pontosPassivosGanhos);
+}, 1000);
+
+function prepararJogo() {
+    mostrarPontosNaTela();
+    mostrarNivelEExperiencia();
+    reporEstoqueDaLoja();
+}
+
+prepararJogo();

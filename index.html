@@ -20,40 +20,28 @@
     </header>
 
     <main id="inicio">
-        <div id="jogar">PLAY</div>
+        <div class="inicio-conteudo">
+            <h1>Click!</h1>
+            <p>Click to collect stars.</p>
+            <p>Buy planets to increase your production.</p>
+            <p>Reach 10,000,000 points to win.</p>
+            <div id="jogar">PLAY</div>
+        </div>
     </main>
 
     <main id="jogo">
         <div id="centro">
             <div id="pontos">Points: 0</div>
             <div id="click">CLICK</div>
-            <p id="mensagem">Click anywhere to collect stars</p>
         </div>
     </main>
 
     <div id="planetasTela"></div>
 
     <section id="loja">
-        <button id="abrirCursores" type="button" title="My Customization">✦</button>
         <h2>STAR SHOP</h2>
         <div class="cards-loja" id="estoquePlanetas"></div>
-        <p id="mensagemLoja">Choose your next upgrade</p>
     </section>
-
-    <div id="painelCursores" hidden>
-        <div class="cabecalho-cursores">
-            <h2>CUSTOMIZATION</h2>
-            <button id="fecharCursores" type="button">×</button>
-        </div>
-
-        <div class="abas-customizacao">
-            <button id="abaCursores" class="aba-btn ativa" type="button">Cursors</button>
-            <button id="abaParticulas" class="aba-btn" type="button">Particles</button>
-        </div>
-
-        <div id="listaCursores"></div>
-        <div id="listaParticulas" hidden></div>
-    </div>
 
     <script src="script.js"></script>
 </body>
