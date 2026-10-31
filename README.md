@@ -1,5 +1,6 @@
 # Touch the Star
 *A game where you touch the stars… not literally.*
+
 A clicker game where you earn points by clicking the screen. You can exchange those points for celestial bodies!
 
 > [!NOTE]
